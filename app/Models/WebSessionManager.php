@@ -9,25 +9,26 @@ class WebSessionManager
 {
     private $defaultType = array("admin", "customer");
     private $session;
+    private \CodeIgniter\Database\BaseConnection $db;
 
     public function __construct()
     {
         $this->session = session();
+        $this->db = db_connect();
     }
 
     /**
      * This function save the current user into the session
-     * @param Crud $user [The user object needed to be saved in the session]
+     * @param object $user [The user object needed to be saved in the session]
      * @param bool $return
      * @return array|false               void
      */
-    public function saveCurrentUser(Crud $user, bool $return = false)
+    public function saveCurrentUser(object $user, bool $return = false)
     {
         $userArray = $this->getRealUserData($user->user_type, $user->user_table_id);
         if (!$userArray) {
             return null;
         }
-        $userArray = $userArray->toArray();
         $temp = $user->toArray();
         $all = array_merge($userArray, $temp);
         if ($return) {
@@ -49,17 +50,16 @@ class WebSessionManager
      * This is to get user_type info
      * @param string $userType [description]
      * @param int $uid [description]
-     * @return object|null [type]           [description]
+     * @return object|array|null [type]           [description]
      */
-    public function getRealUserData(string $userType, int $uid): ?object
+    public function getRealUserData(string $userType, int $uid): object|array|null
     {
-        $moreInfo = [];
         $userType = loadClass($userType);
-        $moreInfo = $userType->getWhere(array('id' => $uid, 'status' => 1), $c, 0, null, false);
-        if (!$moreInfo) {
+        $moreInfo = $this->db->table($userType::$tablename)->getWhere(array('id' => $uid, 'status' => '1'), 1, 0);
+        if ($moreInfo->getNumRows() == 0) {
             return null;
         }
-        return $moreInfo[0];
+        return $moreInfo->getRowArray();
     }
 
     public function getCurrentUserDefaultRole()

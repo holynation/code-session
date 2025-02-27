@@ -106,7 +106,7 @@ class Users extends Crud
 	 */
 	public static array $tableAction = ['delete' => 'delete/user', 'edit' => 'edit/user'];
 
-	private Users $_data;
+	private $_data;
 	/**
 	 * @throws Exception
 	 */
@@ -333,7 +333,7 @@ class Users extends Crud
 		if ($user) {
 			$field = (is_numeric($user)) ? 'id' : 'username';
 			$db = $this->db;
-			$builder = $db->table('user');
+			$builder = $db->table('users');
 			$data = $builder->getWhere(array($field => $user));
 
 			if ($data->getNumRows() > 0) {
@@ -345,7 +345,7 @@ class Users extends Crud
 		return false;
 	}
 
-	public function data(): Users
+	public function data()
     {
 		return $this->_data;
 	}

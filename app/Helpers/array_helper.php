@@ -457,18 +457,15 @@ function listAPIEntities($db): array
 
 function listEntities($db): array
 {
-	if (!$dbResult = cache('nairaboom_tables')) {
-		$query = 'show tables';
-		$dbResult = $db->query($query);
-		$dbResult = $dbResult->getResultArray();
-
+	if (!$dbResult = cache('entity_tables')) {
+        $dbResult = $db->listTables();
 		// save into cache
-		cache()->save('nairaboom_tables', $dbResult, 900); // save for 15min
+		cache()->save('entity_tables', $dbResult, 900); // save for 15min
 	}
 
 	$result = [];
 	foreach ($dbResult as $res) {
-		$result[] = reset($res);
+		$result[] = $res;
 	}
 	return $result;
 }

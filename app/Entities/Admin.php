@@ -14,7 +14,7 @@ class Admin extends Crud {
 * This is the entity name equivalent to the table name
 * @var string
 */
-protected static $tablename = "Admin"; 
+public static $tablename = "Admin";
 
 /** 
 * This array contains the field that can be null
@@ -143,4 +143,4 @@ public function getStatusFormField($value = ''){
  
 }
 
-?>
+

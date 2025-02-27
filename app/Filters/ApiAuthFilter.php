@@ -23,16 +23,15 @@ class ApiAuthFilter implements FilterInterface
         // Do something here
         helper(['security', 'string']);
         $response = service('response');
-        $this->logRequest($request);
 
         if (!$this->validateHeader($request)) {
             return $response->setStatusCode(405)->setJSON(['status' => false, 'message' => 'Authorization denied']);
         }
 
-        /*if (!$this->canProceed($request, $request->getUri()->getSegments(), $message)) {
+        if (!$this->canProceed($request, $request->getUri()->getSegments(), $message)) {
             $message = $message ?? 'Authorization denied';
             return $response->setStatusCode(401)->setJSON(['status' => false, 'message' => $message]);
-        }*/
+        }
 
     }
 

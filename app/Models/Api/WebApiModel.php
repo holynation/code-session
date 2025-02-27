@@ -24,8 +24,6 @@ class WebApiModel extends Model
 
     protected ?ResponseInterface $response;
 
-    private Mailer1 $mailer;
-
     private WebSessionManager $webSessionManager;
 
     protected $db;
@@ -38,22 +36,25 @@ class WebApiModel extends Model
         $this->request = $request;
         $this->response = $response;
         $this->webSessionManager = new WebSessionManager;
-        $this->mailer = new Mailer1;
     }
 
-    public function update_password()
+    public function update_user_auth()
     {
-        $curr_password = $this->request->getPost('current_password');
-        $new = $this->request->getPost('password');
-        $confirm = $this->request->getPost('confirm_password');
-
-        if (!isNotEmpty($curr_password, $new, $confirm)) {
-            return sendApiResponse(false, 'Empty field detected.please fill all required field and try again');
+        $validation = Services::validation();
+        $validation->setRule('username', 'username', 'required');
+        $validation->setRule('current_password', 'current password', 'required');
+        $validation->setRule('password', 'password', 'required');
+        $validation->setRule('confirm_password', 'confirm password', 'required|matches[password]');
+        if (!$validation->run($this->request->getPost())) {
+            $errors = $validation->getErrors();
+            foreach ($errors as $error) {
+                return sendApiResponse(false, $error);
+            }
         }
-
-        if ($new !== $confirm) {
-            return sendApiResponse(false, 'New password does not match with the confirmation password');
-        }
+        $validData = $validation->getValidated();
+        $username = $validData['username'];
+        $curr_password = $validData['current_password'];
+        $new = $validData['password'];
 
         $customer = currentAPIUser();
         if (!$customer) {
@@ -64,18 +65,21 @@ class WebApiModel extends Model
         $user = loadClass('users');
 
         if ($user->findUserProp($id)) {
-            $check = decode_password(trim($curr_password), $user->data()[0]['password']);
-            if (!$check) {
+            if (!decode_password(trim($curr_password), $user->data()[0]['password'])) {
                 return sendApiResponse(false, 'Please type-in your password correctly');
             }
         }
 
+        if($user->data()[0]['has_change_password'] == '1'){
+            return sendApiResponse(false, 'You have already changed your auth details');
+        }
+
         $new = encode_password($new);
-        $query = "update users set password = '$new' where id=?";
+        $query = "UPDATE users set username = '$username', password = '$new', has_change_password = '1' where id=?";
         if ($this->db->query($query, array($id))) {
-            return sendApiResponse(true, 'You have successfully changed your password');
+            return sendApiResponse(true, 'You have successfully changed your auth details');
         } else {
-            return sendApiResponse(false, 'Error occurred during operation');
+            return sendApiResponse(false, 'Unable to update your auth details, please try again');
         }
     }
 
@@ -86,139 +90,6 @@ class WebApiModel extends Model
     public function profile()
     {
         return $this->accountProfile();
-    }
-
-    public function candidates_office($args)
-    {
-        if(isset($args) && is_numeric($args[0])){
-            $this->updateCandidate();
-        }else{
-            $this->createCandidate();
-        }
-    }
-
-    public function updateCandidate(){
-        $voters = loadClass('voters');
-        $candidate = loadClass('offices_candidate');
-        $uri = service('uri');
-        $validation = Services::validation();
-        $validationData = $this->request->getPost();
-        $validation->setRule('office_id', 'office', 'required');
-        $validation->setRule('voter_id', 'voter', 'required');
-        // $validation->setRule('voter_path', 'voter image', 'uploaded[voter_path]|is_image[voter_path]|max_size[voter_path,1024]|ext_in[voter_path,png,jpg,jpeg]');
-
-        if (!$validation->run($validationData)) {
-            $errors = $validation->getErrors();
-            foreach ($errors as $error) {
-                return sendApiResponse(false, $error);
-            }
-        }
-        $id = $uri->getSegment(3);
-        $candidate->id = $id;
-        if(!$candidate->load()){
-            return sendApiResponse(false, 'Invalid candidate id');
-        }
-
-        $voters->id = $candidate->voters_id;
-        if (!$voters->load()) {
-            return sendApiResponse(false, 'Invalid voter id');
-        }
-        $voterOldOrigPath = WRITEPATH . $voters->voters_path;
-        $validData = $validation->getValidated();
-        $voterImage = $this->request->getFile('voter_path');
-
-        if ($voterImage->isValid() && !$voterImage->hasMoved()) {
-            $this->db->transBegin();
-            $newName = $voterImage->getRandomName();
-            $voterPath = 'uploads/voters';
-            $voterOrigPath = WRITEPATH . $voterPath . DIRECTORY_SEPARATOR .$newName;
-            $voterImage->move(WRITEPATH . $voterPath, $newName);
-            $insertParam = [
-                'offices_id' => $validData['office_id'],
-            ];
-            $this->db->table('offices_candidate')->update($insertParam, ['id' => $id]);
-
-            $voters->voters_path = $voterPath . DIRECTORY_SEPARATOR . $newName;
-            if (!$voters->update()) {
-                $this->db->transRollback();
-                deleteFile($voterOrigPath);
-                return sendApiResponse(false, 'Error occurred during operation');
-            }
-            deleteFile($voterOldOrigPath);
-            $this->db->transCommit();
-            return sendApiResponse(true, 'Candidate successfully updated');
-        }
-    }
-
-    private function createCandidate(){
-        $voters = loadClass('voters');
-        $validation = Services::validation();
-        $validationData = $this->request->getPost();
-        $validation->setRule('office_id', 'office', 'required');
-        $validation->setRule('voter_id', 'voter', 'required');
-        $validation->setRule('voter_path', 'voter image', 'uploaded[voter_path]|is_image[voter_path]|max_size[voter_path,1024]|ext_in[voter_path,png,jpg,jpeg]');
-
-        if (!$validation->run($validationData)) {
-            $errors = $validation->getErrors();
-            foreach ($errors as $error) {
-                return sendApiResponse(false, $error);
-            }
-        }
-        $validData = $validation->getValidated();
-        $voterImage = $this->request->getFile('voter_path');
-        if ($voterImage->isValid() && !$voterImage->hasMoved()) {
-            $this->db->transBegin();
-            $newName = $voterImage->getRandomName();
-            $voterPath = 'uploads/voters';
-            $voterOrigPath = WRITEPATH . $voterPath . DIRECTORY_SEPARATOR .$newName;
-            $voterImage->move(WRITEPATH . $voterPath, $newName);
-            $insertParam = [
-                'voters_id' => $validData['voter_id'],
-                'sessions_id' => currentSession()->id,
-            ];
-
-            if(getSingleRecord('offices_candidate', $insertParam)){
-                $this->db->transRollback();
-                deleteFile($voterOrigPath);
-                return sendApiResponse(false, 'Candidate already exist');
-            }
-            $insertParam['offices_id'] = $validData['office_id'];
-            $this->db->table('offices_candidate')->insert($insertParam);
-            $voters->id = $validData['voter_id'];
-            if (!$voters->load()) {
-                $this->db->transRollback();
-                deleteFile($voterOrigPath);
-                return sendApiResponse(false, 'Invalid voter id');
-            }
-            $voters->voters_path = $voterPath . DIRECTORY_SEPARATOR . $newName;
-            if (!$voters->update()) {
-                $this->db->transRollback();
-                deleteFile($voterOrigPath);
-                return sendApiResponse(false, 'Error occurred during operation');
-            }
-            $this->db->transCommit();
-            return sendApiResponse(true, 'Candidate successfully added');
-        }
-    }
-
-    public function dasboard_top_stats(){
-        $voters = loadClass('voters');
-        $votes = loadClass('votes');
-        $votesSubmission = loadClass('votes_submission');
-        $currentSession = currentSession();
-
-        $payload = [
-            'total_voters' => $voters::totalCount(" where status = '1' "),
-            'total_votes' => $votesSubmission::totalCount(" where session_id = '$currentSession->id' "),
-            'active_voters' => $votes::totalCount(" where session_id = '$currentSession->id' "),
-        ];
-        return sendApiResponse(true, 'success', $payload);
-    }
-
-    public function dashboard_candidate_stats(){
-        $office = $this->request->getGet('office');
-        $submission = loadClass('votes_submission');
-        return sendApiResponse(true, 'success', $submission->getCandidateStats($office));
     }
 
 
