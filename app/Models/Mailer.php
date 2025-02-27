@@ -26,8 +26,8 @@ class Mailer {
 	const COMPANY_URL = '';
 	const COMPANY_NAME = 'Nacos-ui Electoral';
 	const COMPANY_SUPPORT = '';
-	const COMPANY_EMAIL = "holynationdevelopment@zoho.com";
-	const SENDER_USERNAME = "holynationdevelopment@zohomail.com";
+	const COMPANY_EMAIL = "";
+	const SENDER_USERNAME = "";
 
     /**
      * @throws Exception
@@ -43,7 +43,7 @@ class Mailer {
         $this->mailer->Host = 'smtp.zoho.com';
         $this->mailer->SMTPAuth = true;
         $this->mailer->Username = self::SENDER_USERNAME;
-        $this->mailer->Password = 'Since_Feb_2015';
+        $this->mailer->Password = '';
         $this->mailer->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
         $this->mailer->Port = 465;
         $this->mailer->isHTML(true);
