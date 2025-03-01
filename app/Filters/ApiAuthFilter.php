@@ -84,6 +84,9 @@ class ApiAuthFilter implements FilterInterface
     {
         $exemptionList = [
             'POST::authenticate',
+            'POST::session_status',
+            'GET::validate_tunnel',
+            'GET::validate_matric'
         ];
         $argument = $arguments[1];
         $argPath = strtoupper($request->getMethod()) . '::' . $argument;

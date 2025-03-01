@@ -5,7 +5,7 @@ namespace App\Database\Migrations;
 use CodeIgniter\Database\Migration;
 use CodeIgniter\Database\RawSql;
 
-class CreateTableSessionQuestion extends Migration
+class CreateTableSessionStudents extends Migration
 {
     public function up()
     {
@@ -22,40 +22,24 @@ class CreateTableSessionQuestion extends Migration
                 'null' => false
             ],
             'session_manager_id' => [
-                'type' => 'VARCHAR',
-                'constraint' => 128,
+                'type' => 'int',
+                'constraint' => 11,
                 'null' => false,
             ],
-            'question' => [
-                'type' => 'text',
+            'matric_number' => [
+                'type' => 'varchar',
+                'constraint' => '30',
                 'null' => false,
             ],
-            'instruction' => [
-                'type' => 'text',
-                'null' => false,
-            ],
-            'total_score' => [
-                'type' => 'float',
-                'constraint' => '10,2',
-                'null' => false,
-            ],
-            'score_percentage' => [
-                'type' => 'float',
-                'constraint' => '10,2',
-                'null' => false
-            ],
-            'input_data' => [
-                'type' => 'text',
-                'null' => false
-            ],
-            'expected_output' => [
-                'type' => 'text',
-                'null' => false
+            'fullname' => [
+                'type' => 'varchar',
+                'constraint' => '130',
+                'null' => true
             ],
             'status' => [
                 'type' => 'tinyint',
-                'constraint' => '1',
-                'default' => '0',
+                'constraint' => 1,
+                'default' => 0,
             ],
             'created_at' => [
                 'type' => 'timestamp',
@@ -64,11 +48,11 @@ class CreateTableSessionQuestion extends Migration
             ],
         ]);
         $this->forge->addKey('id', true);
-        $this->forge->createTable('session_questions');
+        $this->forge->createTable('session_students');
     }
 
     public function down()
     {
-        $this->forge->dropTable('session_questions');
+        $this->forge->dropTable('session_students');
     }
 }

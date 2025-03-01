@@ -1,17 +1,5 @@
 <?php
 
-if (!function_exists('currentSession')) {
-    function currentSession()
-    {
-        $db = db_connect();
-        $session = $db->table('sessions')->getWhere(['status' => 1]);
-        if ($session->getNumRows() == 0) {
-            return null;
-        }
-        return $session->getRow();
-    }
-}
-
 if (!function_exists('deleteFile')) {
     function deleteFile($filename): bool|string
     {
@@ -1192,19 +1180,4 @@ function calcPercentageDiff($startVal, $endVal)
     // if ans is negative, it expresses a rate of increase, otherwise a decrease
     $diff = (($startVal - $endVal) / $startVal);
     return round(($diff * 100), 2);
-}
-
-function appConfig(string $configKey)
-{
-    $mailLink = array(
-        'salt' => '_~2y~12~T31xd7x7b67FO',
-        'type' => array(
-            1 => 'verify_account',
-            2 => 'verify_success',
-            3 => 'forget',
-            4 => 'forget_success',
-            5 => 'password_forget_token',
-        ),
-    );
-    return $mailLink[$configKey];
 }

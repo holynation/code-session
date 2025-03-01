@@ -21,6 +21,11 @@ class CreateTableSessionManager extends Migration
                 'constraint' => 11,
                 'null' => false
             ],
+            'session_name' => [
+                'type' => 'VARCHAR',
+                'constraint' => 255,
+                'null' => false,
+            ],
             'language' => [
                 'type' => 'VARCHAR',
                 'constraint' => 128,
@@ -39,15 +44,32 @@ class CreateTableSessionManager extends Migration
                 'type' => 'datetime',
                 'null' => false,
             ],
+            'invitation_expire' => [
+                'type' => 'int',
+                'constraint' => '11',
+                'null' => false,
+                'comment' => 'in minutes'
+            ],
             'allow_review' => [
                 'type' => 'tinyint',
                 'constraint' => '1',
                 'default' => '1'
             ],
-            'status' => [
+            'hash_link' => [
+                'type' => 'text',
+                'null' => true
+            ],
+            'process_status' => [
                 'type' => 'tinyint',
                 'constraint' => '1',
                 'default' => '0',
+                'comment' => '1:pass, 0:fail'
+            ],
+            'status' => [
+                'type' => 'tinyint',
+                'constraint' => '1',
+                'default' => '1',
+                'comment' => '1:active, 0:inactive'
             ],
             'created_at' => [
                 'type' => 'timestamp',
