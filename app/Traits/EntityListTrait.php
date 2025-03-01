@@ -64,13 +64,13 @@ trait EntityListTrait
         $toReturn = array();
         if (empty($data)) {
             return [
-                'length' => 0,
-                'table_data' => null,
+                'totalLength' => 0,
+                'data' => null,
             ];
         }
         $paging = ($data[1] && is_array($data[1])) ? $data[1][0]['totalCount'] : $data[1];
-        $toReturn['length'] = (int)$paging;
-        $toReturn['table_data'] = $data[0];
+        $toReturn['totalLength'] = (int)$paging;
+        $toReturn['data'] = $data[0];
 
         return $toReturn;
     }

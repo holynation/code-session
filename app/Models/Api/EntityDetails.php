@@ -12,33 +12,20 @@ class EntityDetails
         helper('string');
     }
 
-    public function getVotersDetails(int $id)
+    public function getSession_managerDetails(int $id)
     {
         # Get something
-        $entity = loadClass('voters');
+        $db = db_connect();
+        $entity = loadClass('session_manager');
         $entity->id = $id;
         if(!$entity->load()){
-            return sendApiResponse(false, 'Voter not found');
-        }
-        $entity->voters_path = base_url($entity->voters_path);
-        return $entity->toArray();
-    }
-
-    public function getOffices_candidateDetails(int $id)
-    {
-        # Get something
-        $entity = loadClass('offices_candidate');
-        $voters = loadClass('voters');
-        $entity->id = $id;
-        if(!$entity->load()){
-            return sendApiResponse(false, 'Candidate not found');
-        }
-        $voters->id = $entity->voters_id;
-        if(!$voters->load()){
-            return sendApiResponse(false, 'Candidate info not found');
+            return sendApiResponse(false, 'Session not found');
         }
         $result = $entity->toArray();
-        $result['voters_path'] = base_url($voters->voters_path);
+        $questions = $db->table('session_questions')->where('session_manager_id', $id)->get();
+        $students = $db->table('session_students')->where('session_manager_id', $id)->get();
+        $result['questions'] = $questions->getResult() ?? null;
+        $result['students'] = $students->getResult() ?? null;
         return $result;
     }
 

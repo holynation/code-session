@@ -21,7 +21,6 @@ class Crud {
 
     protected string $foreignKeyEnd = '_id';
 
-
 	protected BaseConnection $db;
 
 	private string $entitiesNameSpace = 'App\Entities\\';

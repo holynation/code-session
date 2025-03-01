@@ -36,24 +36,5 @@ class ModelControllerDataValidator
         return true;
     }
 
-    public function validateSessionsData(&$data, $type, &$db, &$message): bool
-    {
-        $validation = Services::validation();
-        $validationData = $data;
-        $validation->setRule('date', 'date', 'required|is_unique[sessions.date]', [
-            'is_unique' => 'Session already exist'
-        ]);
-
-        if (!$validation->run($validationData)) {
-            $errors = $validation->getErrors();
-            foreach ($errors as $error) {
-                $message = $error;
-                return false;
-            }
-        }
-        $db->table('sessions')->update(['status' => 0]);
-        return true;
-    }
-
 
 }

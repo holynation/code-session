@@ -378,7 +378,7 @@ function buildApiClause(?array $apiSelectClause = [], $alias = null): string
         }
         $clause = $selectQuery;
     }
-    return "SQL_CALC_FOUND_ROWS " . $clause;
+    return $clause;
 }
 
 function getEntityFilterStructure(object $formConfig, object $db, string $entity): array

@@ -113,7 +113,6 @@ class WebApiModel extends Model
             'hid' => $hid,
             'tid' => $tid,
             'route_path' => 'link/validate_tunnel',
-            'session_id' => $sessionID,
             'link' => site_url("link/validate_tunnel?fid={$fid}&hid={$hid}&tid={$tid}")
         ];
     }
@@ -186,11 +185,20 @@ class WebApiModel extends Model
             ];
             $enrollmentData = $this->transformDataInput($enrollment, $enrollmentData);
             $this->db->table('session_students')->insertBatch($enrollmentData);
+            $allStudentID = $this->db->table('session_students')->select('id')->where('session_manager_id', $session_id)->get()->getResultArray();
 
             if ($this->db->transStatus() === false) {
                 throw new \RuntimeException('Database operations failed');
             }
-            $payload = $this->generateLink($session_id);
+            $urlLink = $this->generateLink($session_id);
+            $payload = [
+                'url' => $urlLink,
+                'session' => [
+                    'session_id' => $session_id,
+                    'instructor_id' => $currentUser->user_id,
+                    'student_ids' => $allStudentID
+                ],
+            ];
             $this->db->transCommit();
             return sendApiResponse(true, 'Session created successfully', $payload);
 
@@ -209,6 +217,26 @@ class WebApiModel extends Model
         // update hash_link in table session_manager
         $this->db->table('session_manager')->where('id', $sessionID)->update(['hash_link' => $link]);
         return sendApiResponse(true, 'Session updated successfully');
+    }
+
+    public function session_question_by_id(){
+        $sessionID = $this->request->getGet('session_id');
+        $session = $this->db->table('session_questions')->where('session_manager_id', $sessionID)->get();
+        if($session->getNumRows() == 0){
+            return sendApiResponse(false, 'Session not found');
+        }
+        $session = $session->getResult();
+        return sendApiResponse(true, 'success', $session);
+    }
+
+    public function session_student_by_id(){
+        $sessionID = $this->request->getGet('session_id');
+        $session = $this->db->table('session_students')->where('session_manager_id', $sessionID)->get();
+        if($session->getNumRows() == 0){
+            return sendApiResponse(false, 'Session not found');
+        }
+        $session = $session->getResult();
+        return sendApiResponse(true, 'success', $session);
     }
 
 

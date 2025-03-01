@@ -49,6 +49,8 @@ class LinkValidator extends BaseController
         $this->db->table('session_students')->where('id', $student->id)->update(['status' => '1']);
         return sendApiResponse(true, 'success', [
             'student_id' => $student->id,
+            'instructor_id' => $student->user_id,
+            'session_id' => $student->session_manager_id,
             'matric' => $matric,
             'fullname' => $student->fullname,
         ]);
