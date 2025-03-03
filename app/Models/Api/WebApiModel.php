@@ -99,6 +99,20 @@ class WebApiModel extends Model
         }, $inputData);
     }
 
+    private function transformQuestionData(array $data, $extra): array
+    {
+        return array_map(function ($item) use($extra){
+            if (isset($item['test_cases'])) {
+                $item['test_cases'] = json_encode($item['test_cases']);
+            }
+            if (isset($item['flags'])) {
+                $item['flags'] = json_encode($item['flags']);
+            }
+
+            return array_merge($item, $extra);
+        }, $data);
+    }
+
     private function generateLink($sessionID): array
     {
         $encrypter = service('encrypter');
@@ -130,10 +144,11 @@ class WebApiModel extends Model
 
             'questions.*.question' => 'required|string',
             'questions.*.instruction' => 'required|string',
-            'questions.*.total_score' => 'required|integer',
-            'questions.*.score_percentage' => 'required|numeric',
-            'questions.*.input_data' => 'required|string',
-            'questions.*.expected_output' => 'required|string',
+            'questions.*.test_cases.*.input_data' => 'required|string',
+            'questions.*.test_cases.*.expected_outcome' => 'required|string',
+            'questions.*.test_cases.*.total_weight' => 'required|string',
+            'questions.*.flags.*.name' => 'if_exist|required|string',
+            'questions.*.flags.*.value' => 'if_exist|required|string',
 
             'enrollment.*.fullname' => 'required|string',
             'enrollment.*.matric_number' => 'required|string',
@@ -175,7 +190,7 @@ class WebApiModel extends Model
                 'user_id' => $currentUser->user_id,
                 'session_manager_id' => $session_id,
             ];
-            $questionData = $this->transformDataInput($questions, $questionData);
+            $questionData = $this->transformQuestionData($questions, $questionData);
             $this->db->table('session_questions')->insertBatch($questionData);
 
             $enrollmentData = [
@@ -220,12 +235,13 @@ class WebApiModel extends Model
     }
 
     public function session_question_by_id(){
+        $sessionManager = loadClass('session_manager');
         $sessionID = $this->request->getGet('session_id');
         $session = $this->db->table('session_questions')->where('session_manager_id', $sessionID)->get();
         if($session->getNumRows() == 0){
             return sendApiResponse(false, 'Session not found');
         }
-        $session = $session->getResult();
+        $session = $sessionManager->transformSessionQuestion($session->getResultArray());
         return sendApiResponse(true, 'success', $session);
     }
 

@@ -14,6 +14,7 @@ class CreateTableRolesUser extends Migration
                 'constraint' => 11,
                 'unsigned' => true,
                 'auto_increment' => true,
+                'null' => false,
             ],
             'role_id' => [
                 'type' => 'int',

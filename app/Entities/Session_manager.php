@@ -274,12 +274,25 @@ class Session_manager extends Crud
         return $payload;
     }
 
+    public function transformSessionQuestion(?array $data): array
+    {
+        return array_map(function($item){
+            if(isset($item['test_cases'])){
+                $item['test_cases'] = json_decode($item['test_cases'],  true);
+            }
+            if(isset($item['flags'])){
+                $item['flags'] = json_decode($item['flags'], true);
+            }
+            return $item;
+        }, $data);
+    }
+
     public function loadExtras($item)
     {
         if (isset($item['id'])) {
             // get all session_questions where session_manager_id = $item['id']
             $session_questions = $this->db->table('session_questions')->where('session_manager_id', $item['id'])->get()->getResultArray();
-            $item['session_questions'] = $session_questions;
+            $item['session_questions'] = $this->transformSessionQuestion($session_questions);
 
             // get all session_students where session_manager_id = $item['id']
             $session_students = $this->db->table('session_students')->where('session_manager_id', $item['id'])->get()->getResultArray();

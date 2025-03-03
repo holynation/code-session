@@ -24,7 +24,7 @@ class EntityDetails
         $result = $entity->toArray();
         $questions = $db->table('session_questions')->where('session_manager_id', $id)->get();
         $students = $db->table('session_students')->where('session_manager_id', $id)->get();
-        $result['questions'] = $questions->getResult() ?? null;
+        $result['questions'] = $entity->transformSessionQuestion($questions->getResultArray()) ?? null;
         $result['students'] = $students->getResult() ?? null;
         return $result;
     }

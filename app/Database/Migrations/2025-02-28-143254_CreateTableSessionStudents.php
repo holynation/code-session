@@ -15,6 +15,7 @@ class CreateTableSessionStudents extends Migration
                 'constraint' => 11,
                 'unsigned' => true,
                 'auto_increment' => true,
+                'null' => false,
             ],
             'user_id' => [
                 'type' => 'int',
